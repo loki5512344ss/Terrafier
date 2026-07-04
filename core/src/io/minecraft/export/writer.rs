@@ -5,7 +5,7 @@ use std::fs;
 use std::path::Path;
 
 use crate::io::layer_export::LayerExport;
-use crate::io::minecraft::{data_version, Result};
+use crate::io::minecraft::{Result, data_version};
 use crate::model::tile::Tile;
 use crate::model::world::World;
 
