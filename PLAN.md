@@ -17,7 +17,9 @@
 │  │World │Tile  │Export  │Import  │                 │
 │  │Model │Ops   │Pipeline│Anvil   │                 │
 │  └──────┴──────┴────────┴────────┘                 │
-├────────────────────────────────────────────────────┤
+├──────────────────────┬─────────────────────────────┤
+│  wasm-host / rhai    │  Плагины и скриптинг         │
+├──────────────────────┴─────────────────────────────┤
 │  Foundation crates                                  │
 │  nbt │ fastanvil │ noise │ palette-compress         │
 │  biome-db                                          │
@@ -39,10 +41,10 @@
 - **Heightmap**: noise-based генерация (OpenSimplex), flat, combined
 
 ### В работе / не реализовано
-- **GPU-рендеринг (wgpu)** — ключевая фича, пока весь рендер CPU
-- **Слои**: Caves, Rivers, Frost, Trees, Resources, Biome
-- **Импорт .world** (WorldPainter format)
-- **Плагины** (WASM)
+- **WASM плагины** — wasmtime-хост, ABI, загрузка .wasm файлов
+- **Скриптинг** — Rhai-движок для world-генераторов
+- **i18n** — локализация CLI/GUI
+- **GUI polish** — pan/zoom GPU viewport, brush overlay, layer panel
 
 ## Стек
 
@@ -76,23 +78,29 @@ NBT парсер, Anvil reader, workspace setup
 Tile, Dimension, World, Terrain, Brush, Operation
 
 ### Phase 2 (done) — Minecraft I/O + CLI
-Импорт/экспорт Java Edition, CLI команды
+Импорт/экспорт Java Edition, CLI команды, импорт .world
 
-### Phase 3 — Operations & Layers
+### Phase 3 (done) — Operations & Layers
 Инструменты (raise, erode, smooth, flatten, fill, paint)
 Слои (caves, river, frost, trees, biome, resources)
-Экспортёры слоёв
+Экспортёры слоёв, фильтры, MultiTile
 
-### Phase 4 — GUI
-GPU-рендеринг через wgpu (шейдеры, 30-60 FPS)
-Панорамирование, зум, оверлей кисти
-Панель слоёв, инструментов, диалоги
+### Phase 4 (done) — GUI (MVP)
+GPU-рендеринг через wgpu (базовый), панель инструментов
+Диалоги (New World, Export), undo/redo
 
-### Phase 5 — Полировка
-Бенчмарки, оптимизация, i18n, пакеты (AppImage/msi/app)
+### Phase 5 — WASM Plugins + Scripting
+WASM-хост на wasmtime, ABI для плагинов
+Rhai-скриптинг для world-генераторов
+Загрузка плагинов из .wasm файлов, registry
+
+### Phase 6 — i18n + Инфраструктура
+Локализация CLI/GUI (rust-i18n / Fluent)
+CI/CD, cargo-dist, AppImage/msi/app
+Бенчмарки, оптимизация, polish
 
 ### Будущее
-Импорт .world, WASM плагины, Bedrock Edition, скриптинг
+Bedrock Edition, GUI pan/zoom/brush-overlay, GUI layer panel
 
 ## Модель данных
 

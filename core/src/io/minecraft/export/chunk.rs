@@ -1,9 +1,9 @@
-use std::collections::{BTreeSet, HashMap};
-use crate::io::layer_export::{apply_layers, biome_name, LayerExport};
-use crate::io::minecraft::{data_version, Result};
-use crate::model::tile::Tile;
-use super::blocks::{bits_needed, pack_indices, BLOCK_SET, BLOCK_SET_EXTENDED};
 use super::block_name;
+use super::blocks::{BLOCK_SET, BLOCK_SET_EXTENDED, bits_needed, pack_indices};
+use crate::io::layer_export::{LayerExport, apply_layers, biome_name};
+use crate::io::minecraft::{Result, data_version};
+use crate::model::tile::Tile;
+use std::collections::{BTreeSet, HashMap};
 
 fn make_section(
     sec_y: i32,
@@ -12,7 +12,10 @@ fn make_section(
 ) -> terrafier_nbt::Tag {
     let mut sec = HashMap::new();
     sec.insert("Y".into(), terrafier_nbt::Tag::Byte(sec_y as i8));
-    sec.insert("block_states".into(), terrafier_nbt::Tag::Compound(block_states));
+    sec.insert(
+        "block_states".into(),
+        terrafier_nbt::Tag::Compound(block_states),
+    );
     sec.insert("biomes".into(), terrafier_nbt::Tag::Compound(biomes));
     terrafier_nbt::Tag::Compound(sec)
 }
@@ -38,7 +41,10 @@ pub(super) fn build_chunk_nbt(
     let mut compound = HashMap::new();
     compound.insert("xPos".into(), terrafier_nbt::Tag::Int(chunk_x));
     compound.insert("zPos".into(), terrafier_nbt::Tag::Int(chunk_z));
-    compound.insert("DataVersion".into(), terrafier_nbt::Tag::Int(data_version()));
+    compound.insert(
+        "DataVersion".into(),
+        terrafier_nbt::Tag::Int(data_version()),
+    );
     compound.insert("Status".into(), terrafier_nbt::Tag::String("full".into()));
     let min_sec = (tile.min_height as i32 >> 4).max(-4);
     let max_sec = (tile.max_height as i32 >> 4).min(20);
@@ -104,7 +110,10 @@ pub(super) fn build_chunk_nbt_with_layers(
     let mut compound = HashMap::new();
     compound.insert("xPos".into(), terrafier_nbt::Tag::Int(chunk_x));
     compound.insert("zPos".into(), terrafier_nbt::Tag::Int(chunk_z));
-    compound.insert("DataVersion".into(), terrafier_nbt::Tag::Int(data_version()));
+    compound.insert(
+        "DataVersion".into(),
+        terrafier_nbt::Tag::Int(data_version()),
+    );
     compound.insert("Status".into(), terrafier_nbt::Tag::String("full".into()));
     let min_sec = (tile.min_height as i32 >> 4).max(-4);
     let max_sec = (tile.max_height as i32 >> 4).min(20);
@@ -125,7 +134,12 @@ pub(super) fn build_chunk_nbt_with_layers(
                         let terrain_id = tile.terrain[tile_lz * 128 + tile_lx];
                         let base_name = block_name(terrain_id, global_y, surface_y);
                         let name = apply_layers(
-                            tile, tile_lx, tile_lz, global_y, surface_y, base_name,
+                            tile,
+                            tile_lx,
+                            tile_lz,
+                            global_y,
+                            surface_y,
+                            base_name,
                             layer_exporters,
                         );
                         BLOCK_SET_EXTENDED

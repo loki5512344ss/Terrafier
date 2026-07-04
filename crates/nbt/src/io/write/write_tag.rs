@@ -1,7 +1,7 @@
 use std::io::Write;
 
+use super::writer::{NbtWriter, Result, WriteError};
 use crate::tag::Tag;
-use super::writer::{NbtWriter, WriteError, Result};
 
 impl<W: Write> NbtWriter<W> {
     pub(crate) fn write_tag(&mut self, tag: &Tag, name: Option<&str>) -> Result<()> {

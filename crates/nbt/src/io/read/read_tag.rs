@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::io::Read;
 
-use crate::tag::Tag;
 use super::reader::{NbtReader, ReadError, Result};
+use crate::tag::Tag;
 
 impl<R: Read> NbtReader<R> {
     pub(crate) fn read_tag_payload(&mut self, tag_type: u8) -> Result<Tag> {

@@ -1,9 +1,9 @@
 use std::sync::Arc;
 use std::sync::OnceLock;
 
-use crate::model::types::Brush;
 use crate::model::dimension::Dimension;
 use crate::model::tile::TILE_SIZE;
+use crate::model::types::Brush;
 
 use crate::ops::operations::{Operation, OperationError, RestoreHeightsOperation};
 

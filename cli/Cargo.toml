@@ -3,13 +3,26 @@ name = "terrafier-cli"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+authors.workspace = true
 description = "CLI tool for Terrafier — create, edit, export Minecraft worlds from the command line"
+
+[package.metadata.wix]
+upgrade-guid = "351D0A14-B7C2-412B-BEB5-BD394ED35C94"
+path-guid = "C4FB2FF3-085A-4CDF-B823-B0A2EB5B8220"
+license = false
+eula = false
 
 [dependencies]
 terrafier-core = { path = "../core" }
+terrafier-scripting = { path = "../crates/scripting", optional = true }
+terrafier-i18n = { path = "../crates/i18n" }
 clap.workspace = true
 anyhow.workspace = true
 indicatif.workspace = true
 log.workspace = true
 env_logger.workspace = true
 serde_json.workspace = true
+
+[features]
+scripting = ["terrafier-scripting"]

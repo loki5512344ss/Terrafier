@@ -2,21 +2,15 @@ use crate::renderer::GpuRenderer;
 use crate::renderer::Uniforms;
 
 fn as_u8_slice<T>(data: &[T]) -> &[u8] {
-    unsafe {
-        std::slice::from_raw_parts(
-            data.as_ptr() as *const u8,
-            std::mem::size_of_val(data),
-        )
-    }
+    // SAFETY: Reinterprets `&[T]` as `&[u8]` for GPU buffer upload.
+    // T is a primitive type with no padding, and the byte layout is stable.
+    unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, std::mem::size_of_val(data)) }
 }
 
 fn as_u8_value<T>(data: &T) -> &[u8] {
-    unsafe {
-        std::slice::from_raw_parts(
-            data as *const T as *const u8,
-            std::mem::size_of::<T>(),
-        )
-    }
+    // SAFETY: Reinterprets a single `&T` as `&[u8]` for GPU buffer upload.
+    // T is a primitive type with no padding, and the byte layout is stable.
+    unsafe { std::slice::from_raw_parts(data as *const T as *const u8, std::mem::size_of::<T>()) }
 }
 
 impl GpuRenderer {
@@ -39,8 +33,8 @@ impl GpuRenderer {
         self.last_show_heightmap = show_heightmap;
         self.needs_upload = false;
 
-        let min_height = *heightmap.iter().min().unwrap();
-        let max_height = *heightmap.iter().max().unwrap();
+        let min_height = *heightmap.iter().min().unwrap_or(&0);
+        let max_height = *heightmap.iter().max().unwrap_or(&255);
 
         let packed_heightmap = Self::pack_heightmap(heightmap);
         self.queue

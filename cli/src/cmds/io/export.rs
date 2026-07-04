@@ -1,5 +1,6 @@
 use clap::Args;
 use std::path::Path;
+use terrafier_i18n as i18n;
 
 use crate::util::output::{self, OutputFormat};
 use crate::util::{load_world, progress};
@@ -31,6 +32,9 @@ pub fn cmd_export(
     let tile_count: usize = world.dimensions.iter().map(|d| d.tiles.len()).sum();
 
     if validate || dry_run {
+        if dry_run {
+            log::info!("{}", i18n::translate_with("cli.dry_run", &[("action", "export")]));
+        }
         output::print_result(
             format,
             &serde_json::json!({
@@ -45,9 +49,10 @@ pub fn cmd_export(
         }
     }
 
-    let bar = progress::new_bar(tile_count as u64, "Exporting...");
+    let exporting_msg = i18n::translate_with("cli.export.exporting", &[("path", &args.output)]);
+    let bar = progress::new_bar(tile_count as u64, &exporting_msg);
     terrafier_core::io::export::export_to_save(&world, Path::new(&args.output))?;
-    progress::finish_with("Export complete", bar);
+    progress::finish_with(i18n::t!("cli.export.complete"), bar);
 
     log::info!("World exported to: {}", args.output);
     output::print_result(

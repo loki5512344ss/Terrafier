@@ -1,7 +1,7 @@
 //! Plugin host — trait-объекты для расширения функциональности.
 
-mod traits;
 pub mod registry;
+mod traits;
 
-pub use traits::{ExportPlugin, LayerPlugin, OperationPlugin, TileSourcePlugin};
 pub use registry::PluginRegistry;
+pub use traits::{ExportPlugin, LayerPlugin, OperationPlugin, TileSourcePlugin};

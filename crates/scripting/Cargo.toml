@@ -1,0 +1,11 @@
+[package]
+name = "terrafier-scripting"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Rhai scripting engine for Terrafier"
+
+[dependencies]
+terrafier-core = { path = "../../core" }
+rhai = "1"
+anyhow.workspace = true

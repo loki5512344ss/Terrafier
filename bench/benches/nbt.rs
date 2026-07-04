@@ -11,8 +11,8 @@ fn make_small_compound() -> Tag {
     map.insert("short".into(), Tag::Short(1000));
     map.insert("int".into(), Tag::Int(1_000_000));
     map.insert("long".into(), Tag::Long(1_000_000_000));
-    map.insert("float".into(), Tag::Float(3.14));
-    map.insert("double".into(), Tag::Double(2.718));
+    map.insert("float".into(), Tag::Float(std::f64::consts::PI as f32));
+    map.insert("double".into(), Tag::Double(std::f64::consts::E));
     map.insert("string".into(), Tag::String("Hello, Benchmark!".into()));
     map.insert(
         "inner".into(),

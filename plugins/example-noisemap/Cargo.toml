@@ -1,0 +1,12 @@
+[package]
+name = "terrafier-plugin-example-noisemap"
+version = "0.1.0"
+edition = "2024"
+description = "Example WASM plugin for Terrafier — generates noise-based terrain"
+
+[lib]
+crate-type = ["cdylib"]
+
+[profile.release]
+opt-level = "s"
+lto = true

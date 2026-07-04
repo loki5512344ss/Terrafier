@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
+use super::super::java_reader::JvmStream;
 use super::java_types::{
-    ClassDesc, FieldInfo, JvmValue, BASE_WIRE_HANDLE, TC_ARRAY, TC_BLOCKDATA, TC_BLOCKDATALONG,
+    BASE_WIRE_HANDLE, ClassDesc, FieldInfo, JvmValue, TC_ARRAY, TC_BLOCKDATA, TC_BLOCKDATALONG,
     TC_CLASS, TC_CLASSDESC, TC_ENDBLOCKDATA, TC_ENUM, TC_LONGSTRING, TC_NULL, TC_OBJECT,
     TC_PROXYCLASSDESC, TC_REFERENCE, TC_RESET, TC_STRING,
 };
-use super::super::java_reader::JvmStream;
 
 impl JvmStream {
     pub fn read_classdesc(&mut self) -> std::io::Result<JvmValue> {
@@ -124,10 +124,7 @@ impl JvmStream {
                 other => {
                     return Err(std::io::Error::new(
                         std::io::ErrorKind::InvalidData,
-                        format!(
-                            "unexpected token in class annotations: 0x{:02x}",
-                            other
-                        ),
+                        format!("unexpected token in class annotations: 0x{:02x}", other),
                     ));
                 }
             }
@@ -182,5 +179,4 @@ impl JvmStream {
         self.handles[(handle - BASE_WIRE_HANDLE) as usize] = obj.clone();
         Ok(obj)
     }
-
 }

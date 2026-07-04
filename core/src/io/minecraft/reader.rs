@@ -51,7 +51,19 @@ pub fn load_save(path: &Path) -> Result<World> {
                 let region_bytes = fs::read(&path)?;
                 let region = Region::from_bytes(rx, rz, &region_bytes)?;
                 for (local_x, local_z) in region.chunk_coords() {
-                    let chunk_data = region.get_chunk_data(local_x, local_z).unwrap();
+                    let chunk_data = match region.get_chunk_data(local_x, local_z) {
+                        Some(data) => data,
+                        None => {
+                            log::warn!(
+                                "corrupted chunk data at ({}, {}) in region ({}, {})",
+                                local_x,
+                                local_z,
+                                rx,
+                                rz
+                            );
+                            continue;
+                        }
+                    };
                     if let Ok(chunk_tag) = read_gzip(chunk_data)
                         && let Some(chunk) =
                             terrafier_fastanvil::io::chunk::Chunk::from_nbt(&chunk_tag)

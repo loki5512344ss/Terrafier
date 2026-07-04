@@ -14,8 +14,8 @@ pub use coords::{BlockCoords, ChunkCoords, RegionCoords, TileCoords};
 pub use io::export;
 pub use io::import;
 pub use model::dimension::Dimension;
-pub use model::types::{Platform, Terrain};
 pub use model::tile::Tile;
+pub use model::types::{Platform, Terrain};
 pub use model::world::World;
 
 pub use terrafier_biome_db as biome_db;

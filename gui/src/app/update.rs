@@ -71,8 +71,8 @@ impl eframe::App for TerrafierApp {
             && let Some(tile) = world.dimensions[0].tiles.values().next()
         {
             renderer.render(
-                &tile.heightmap.as_slice().try_into().expect("heightmap size"),
-                &tile.terrain.as_slice().try_into().expect("terrain size"),
+                &tile.heightmap.as_slice().try_into().unwrap_or_else(|_| [0; 16384]),
+                &tile.terrain.as_slice().try_into().unwrap_or_else(|_| [0; 16384]),
                 self.show_heightmap,
             );
 

@@ -20,7 +20,11 @@ impl World {
     }
 
     /// Create a new world using a custom height map source.
-    pub fn with_heightmap(name: &str, seed: u64, heightmap: impl HeightMapSource + 'static) -> Self {
+    pub fn with_heightmap(
+        name: &str,
+        seed: u64,
+        heightmap: impl HeightMapSource + 'static,
+    ) -> Self {
         let platform = Platform::java_1_18();
 
         let coords: Vec<(i32, i32)> = (-1..=1)

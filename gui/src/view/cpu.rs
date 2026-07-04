@@ -1,21 +1,45 @@
+use crate::app::{
+    LAYER_BIOME_IDX, LAYER_CAVES_IDX, LAYER_FROST_IDX, LAYER_RESOURCES_IDX, LAYER_RIVER_IDX,
+    LAYER_TREES_IDX,
+};
 use egui::{Color32, ColorImage, TextureOptions, Vec2};
-use terrafier_core::model::tile::{TILE_SIZE, LayerBuffer};
-use terrafier_core::model::layers::{LAYER_CAVES, LAYER_RIVER, LAYER_FROST, LAYER_TREES, LAYER_BIOME, LAYER_RESOURCES};
-use crate::app::{LAYER_CAVES_IDX, LAYER_RIVER_IDX, LAYER_FROST_IDX, LAYER_TREES_IDX, LAYER_BIOME_IDX, LAYER_RESOURCES_IDX};
+use terrafier_core::model::layers::{
+    LAYER_BIOME, LAYER_CAVES, LAYER_FROST, LAYER_RESOURCES, LAYER_RIVER, LAYER_TREES,
+};
+use terrafier_core::model::tile::{LayerBuffer, TILE_SIZE};
 
-const LAYER_IDS: [u32; 6] = [LAYER_CAVES, LAYER_RIVER, LAYER_FROST, LAYER_TREES, LAYER_BIOME, LAYER_RESOURCES];
+const LAYER_IDS: [u32; 6] = [
+    LAYER_CAVES,
+    LAYER_RIVER,
+    LAYER_FROST,
+    LAYER_TREES,
+    LAYER_BIOME,
+    LAYER_RESOURCES,
+];
 
-fn layer_value(tile: &terrafier_core::model::tile::Tile, idx: usize, layer_idx: usize) -> Option<f32> {
+fn layer_value(
+    tile: &terrafier_core::model::tile::Tile,
+    idx: usize,
+    layer_idx: usize,
+) -> Option<f32> {
     let layer_id = LAYER_IDS[layer_idx];
     let buf = tile.layer_data.get(&layer_id)?;
     let val = match buf {
         LayerBuffer::Bit(data) => {
             let word = data.get(idx / 64)?;
-            Some(if (word >> (idx % 64)) & 1 != 0 { 1.0 } else { 0.0 })
+            Some(if (word >> (idx % 64)) & 1 != 0 {
+                1.0
+            } else {
+                0.0
+            })
         }
         LayerBuffer::Nibble(data) => {
             let byte = *data.get(idx / 2)?;
-            let nib = if idx % 2 == 0 { byte & 0x0F } else { (byte >> 4) & 0x0F };
+            let nib = if idx % 2 == 0 {
+                byte & 0x0F
+            } else {
+                (byte >> 4) & 0x0F
+            };
             Some(nib as f32 / 15.0)
         }
         LayerBuffer::Byte(data) => {
@@ -65,7 +89,9 @@ const TERRAIN_COLORS: [Color32; 7] = [
 ];
 
 pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
-    let Some(ref world) = app.world else { return; };
+    let Some(ref world) = app.world else {
+        return;
+    };
     let dim = &world.dimensions[0];
 
     let mut min_tx = i32::MAX;
@@ -79,20 +105,22 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
         max_tz = max_tz.max(tz);
     }
 
-    let display_size = 64u32;
-    let grid_w = ((max_tx - min_tx + 1) * display_size as i32) as usize;
-    let grid_h = ((max_tz - min_tz + 1) * display_size as i32) as usize;
+    let base_size = 64u32;
+    let zoom = app.view_zoom;
+
+    let grid_w = ((max_tx - min_tx + 1) * base_size as i32) as usize;
+    let grid_h = ((max_tz - min_tz + 1) * base_size as i32) as usize;
 
     let mut img_data = vec![0u8; grid_w * grid_h * 4];
 
     for (&(tx, tz), tile) in &dim.tiles {
-        let px = ((tx - min_tx) * display_size as i32) as usize;
-        let pz = ((tz - min_tz) * display_size as i32) as usize;
+        let px = ((tx - min_tx) * base_size as i32) as usize;
+        let pz = ((tz - min_tz) * base_size as i32) as usize;
 
-        for ly in 0..display_size as usize {
-            for lx in 0..display_size as usize {
-                let sx = (lx * TILE_SIZE / display_size as usize).min(TILE_SIZE - 1);
-                let sz = (ly * TILE_SIZE / display_size as usize).min(TILE_SIZE - 1);
+        for ly in 0..base_size as usize {
+            for lx in 0..base_size as usize {
+                let sx = (lx * TILE_SIZE / base_size as usize).min(TILE_SIZE - 1);
+                let sz = (ly * TILE_SIZE / base_size as usize).min(TILE_SIZE - 1);
                 let idx = sz * TILE_SIZE + sx;
 
                 let terrain_type = tile.terrain[idx] as usize;
@@ -127,7 +155,11 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
                     if app.layer_visible[li] {
                         if let Some(val) = layer_value(tile, idx, li) {
                             if let Some(over) = layer_overlay(li, val) {
-                                let alpha = if val > 0.0 { (val * 0.6 + 0.2).min(0.8) } else { 0.0 };
+                                let alpha = if val > 0.0 {
+                                    (val * 0.6 + 0.2).min(0.8)
+                                } else {
+                                    0.0
+                                };
                                 (r, g, b) = blend_overlay((r, g, b), over, alpha);
                             }
                         }
@@ -156,13 +188,35 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
         id
     };
 
-    let desired_size = Vec2::new(grid_w as f32, grid_h as f32);
-    let (response, painter) = ui.allocate_painter(desired_size, egui::Sense::click());
+    // Viewport: allocate a large area for the world with scroll
+    let viewport_size = Vec2::new(grid_w as f32 * zoom, grid_h as f32 * zoom);
+    let (response, painter) = ui.allocate_painter(
+        viewport_size,
+        egui::Sense::click_and_drag(),
+    );
+
+    // Handle scroll-wheel zoom
+    let scroll_delta = ui.input(|i| i.raw_scroll_delta);
+    if scroll_delta.y != 0.0 {
+        app.view_zoom = (app.view_zoom * (1.0 + scroll_delta.y * 0.002)).clamp(0.1, 10.0);
+    }
+
+    // Handle drag-to-pan
+    if response.dragged() {
+        app.view_offset += response.drag_delta();
+    }
+
+    // Recalculate scaled size after potential zoom change
+    let scaled_size = base_size as f32 * app.view_zoom;
+    let offset = app.view_offset;
 
     let rect = response.rect;
     painter.image(
         texture_id,
-        rect,
+        egui::Rect::from_min_max(
+            egui::pos2(rect.min.x + offset.x, rect.min.y + offset.y),
+            egui::pos2(rect.min.x + offset.x + grid_w as f32 * app.view_zoom, rect.min.y + offset.y + grid_h as f32 * app.view_zoom),
+        ),
         egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
         Color32::WHITE,
     );
@@ -173,10 +227,10 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
         && sel_tz >= min_tz
         && sel_tz <= max_tz
     {
-        let bx = rect.min.x + (sel_tx - min_tx) as f32 * display_size as f32;
-        let bz = rect.min.y + (sel_tz - min_tz) as f32 * display_size as f32;
+        let bx = rect.min.x + offset.x + (sel_tx - min_tx) as f32 * scaled_size;
+        let bz = rect.min.y + offset.y + (sel_tz - min_tz) as f32 * scaled_size;
         let border_rect =
-            egui::Rect::from_min_size(egui::pos2(bx, bz), Vec2::splat(display_size as f32));
+            egui::Rect::from_min_size(egui::pos2(bx, bz), Vec2::splat(scaled_size));
         painter.rect_stroke(
             border_rect,
             0.0,
@@ -188,13 +242,13 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
     if let (Some((sel_tx, sel_tz)), Some(bx), Some(bz)) =
         (app.selected_tile, app.brush_local_x, app.brush_local_z)
     {
-        let tile_x_in_pixels = (sel_tx - min_tx) as f32 * display_size as f32;
-        let tile_z_in_pixels = (sel_tz - min_tz) as f32 * display_size as f32;
+        let tile_x_in_pixels = (sel_tx - min_tx) as f32 * scaled_size;
+        let tile_z_in_pixels = (sel_tz - min_tz) as f32 * scaled_size;
         let brush_x =
-            rect.min.x + tile_x_in_pixels + (bx as f32 * display_size as f32 / TILE_SIZE as f32);
+            rect.min.x + offset.x + tile_x_in_pixels + (bx as f32 * scaled_size / TILE_SIZE as f32);
         let brush_z =
-            rect.min.y + tile_z_in_pixels + (bz as f32 * display_size as f32 / TILE_SIZE as f32);
-        let brush_radius_px = app.brush_radius as f32 * display_size as f32 / TILE_SIZE as f32;
+            rect.min.y + offset.y + tile_z_in_pixels + (bz as f32 * scaled_size / TILE_SIZE as f32);
+        let brush_radius_px = app.brush_radius as f32 * scaled_size / TILE_SIZE as f32;
         painter.circle_stroke(
             egui::pos2(brush_x, brush_z),
             brush_radius_px.max(2.0),
@@ -202,20 +256,21 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
         );
     }
 
+    // Click-to-select with inverse transform
     if response.clicked()
         && let Some(pos) = response.interact_pointer_pos()
     {
-        let lx = pos.x - rect.min.x;
-        let lz = pos.y - rect.min.y;
+        let lx = pos.x - rect.min.x - offset.x;
+        let lz = pos.y - rect.min.y - offset.y;
         if lx >= 0.0 && lz >= 0.0 {
-            let tx = (lx / display_size as f32).floor() as i32 + min_tx;
-            let tz = (lz / display_size as f32).floor() as i32 + min_tz;
+            let tx = (lx / scaled_size).floor() as i32 + min_tx;
+            let tz = (lz / scaled_size).floor() as i32 + min_tz;
             if dim.tiles.contains_key(&(tx, tz)) {
                 app.selected_tile = Some((tx, tz));
                 let local_x =
-                    ((lx as u32 % display_size) * TILE_SIZE as u32 / display_size).min(127);
+                    ((lx as u32 % scaled_size as u32) * TILE_SIZE as u32 / scaled_size as u32).min(127);
                 let local_z =
-                    ((lz as u32 % display_size) * TILE_SIZE as u32 / display_size).min(127);
+                    ((lz as u32 % scaled_size as u32) * TILE_SIZE as u32 / scaled_size as u32).min(127);
                 app.brush_local_x = Some(local_x);
                 app.brush_local_z = Some(local_z);
                 app.status_message = format!(

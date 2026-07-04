@@ -18,12 +18,14 @@ pub enum OperationError {
 }
 
 mod brush;
-mod shaping;
 mod fill;
+mod shaping;
 
 pub use brush::{FloodOperation, PaintOperation, PencilOperation};
-pub use shaping::{ErodeOperation, FlattenOperation, HeightOperation, MultiTileOperation, SmoothOperation};
 pub use fill::FillOperation;
+pub use shaping::{
+    ErodeOperation, FlattenOperation, HeightOperation, MultiTileOperation, SmoothOperation,
+};
 
 /// Restores heights from a saved snapshot (used as inverse of FlattenOperation).
 pub struct RestoreHeightsOperation {

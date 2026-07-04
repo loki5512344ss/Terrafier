@@ -13,7 +13,9 @@ fn tile_hash(tile_x: i32, tile_z: i32, seed: u64) -> u64 {
 }
 
 fn pseudo_rand(state: &mut u64) -> u64 {
-    *state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+    *state = state
+        .wrapping_mul(6364136223846793005)
+        .wrapping_add(1442695040888963407);
     *state >> 33
 }
 
@@ -34,9 +36,7 @@ impl crate::ops::layers::LayerGenerator for TreesGenerator {
         for idx in 0..total {
             let terrain_type = terrain[idx] as usize;
             bytes[idx] = match terrain_type {
-                t if t == Terrain::Forest as usize => {
-                    (pseudo_rand(&mut rng) % 60).max(20) as u8
-                }
+                t if t == Terrain::Forest as usize => (pseudo_rand(&mut rng) % 60).max(20) as u8,
                 t if t == Terrain::Grass as usize && pseudo_rand(&mut rng) % 100 < 30 => {
                     (pseudo_rand(&mut rng) % 20 + 5) as u8
                 }

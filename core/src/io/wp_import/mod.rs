@@ -15,8 +15,8 @@ pub use extract::*;
 pub use types::WpImportError;
 
 use crate::model::dimension::Dimension;
-use crate::model::types::Platform;
 use crate::model::tile::Tile;
+use crate::model::types::Platform;
 use crate::model::world::World;
 
 use java_reader::JvmStream;

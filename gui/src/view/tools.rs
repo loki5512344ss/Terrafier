@@ -1,14 +1,14 @@
 use std::sync::Arc;
 
 use terrafier_core::Terrain;
-use terrafier_core::model::types::SymmetricBrush;
 use terrafier_core::model::tile::TILE_SIZE;
+use terrafier_core::model::types::SymmetricBrush;
 use terrafier_core::ops::operations::{
     ErodeOperation, FillOperation, FlattenOperation, HeightOperation, MultiTileOperation,
     Operation, PaintOperation, SmoothOperation,
 };
 
-use crate::app::{TerrafierApp, ToolMode, LAYER_NAMES};
+use crate::app::{LAYER_NAMES, TerrafierApp, ToolMode};
 
 pub fn show_tools_panel(ui: &mut egui::Ui, app: &mut TerrafierApp) {
     ui.heading("Tools");
@@ -83,7 +83,10 @@ fn apply_tool(app: &mut TerrafierApp) {
     let Some(ref mut world) = app.world else {
         return;
     };
-    let dim = world.overworld_mut().expect("no overworld");
+    let Some(dim) = world.overworld_mut() else {
+        app.status_message = "World has no overworld".to_string();
+        return;
+    };
 
     let center = app.brush_local_x.unwrap_or(64);
     let center_z = app.brush_local_z.unwrap_or(64);

@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
+use super::super::java_reader::JvmStream;
 use super::java_types::{
     ClassDesc, FieldInfo, JvmValue, PRIM_BOOL, PRIM_BYTE, PRIM_CHAR, PRIM_DOUBLE, PRIM_FLOAT,
     PRIM_INT, PRIM_LONG, PRIM_SHORT, SC_WRITE_METHOD, TC_BLOCKDATA, TC_BLOCKDATALONG,
 };
-use super::super::java_reader::JvmStream;
 
 impl JvmStream {
     pub fn read_object_fields(&mut self, cd: &ClassDesc) -> std::io::Result<JvmValue> {

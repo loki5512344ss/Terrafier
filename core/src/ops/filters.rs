@@ -1,9 +1,9 @@
 //! Filter system — restrict which cells an operation affects based on terrain, height, or slope.
-use std::sync::OnceLock;
 use crate::model::dimension::Dimension;
+use crate::model::tile::{TILE_SIZE, Tile};
 use crate::model::types::Terrain;
-use crate::model::tile::{Tile, TILE_SIZE};
 use crate::ops::operations::{Operation, OperationError, RestoreHeightsOperation};
+use std::sync::OnceLock;
 /// Determines whether a cell should be modified by an operation.
 pub trait Filter: Send + Sync {
     fn name(&self) -> &'static str;

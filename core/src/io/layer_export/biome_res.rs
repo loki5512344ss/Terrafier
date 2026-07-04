@@ -73,7 +73,10 @@ fn terrafier_biome_name(id: u8) -> &'static str {
         arr
     });
 
-    names.get(id as usize).copied().unwrap_or("minecraft:plains")
+    names
+        .get(id as usize)
+        .copied()
+        .unwrap_or("minecraft:plains")
 }
 
 pub struct BiomeLayerExport;

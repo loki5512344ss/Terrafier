@@ -1,5 +1,6 @@
 use clap::Args;
 use std::path::PathBuf;
+use terrafier_i18n as i18n;
 
 use crate::util::output::{self, OutputFormat};
 use crate::util::{load_world, progress};
@@ -31,6 +32,9 @@ pub fn cmd_render(
     let tile_count: usize = world.dimensions.iter().map(|d| d.tiles.len()).sum();
 
     if validate || dry_run {
+        if dry_run {
+            log::info!("{}", i18n::translate_with("cli.dry_run", &[("action", "render")]));
+        }
         output::print_result(
             format,
             &serde_json::json!({
@@ -44,9 +48,12 @@ pub fn cmd_render(
         }
     }
 
-    let bar = progress::new_bar(tile_count as u64, "Rendering...");
+    let bar = progress::new_bar(tile_count as u64, i18n::t!("cli.render.rendering"));
     terrafier_core::io::export::render_to_image(&world, &args.output, args.scale)?;
-    progress::finish_with("Render complete", bar);
+    let saved_msg = i18n::translate_with("cli.render.saved", &[
+        ("path", &args.output.display().to_string()),
+    ]);
+    progress::finish_with(&saved_msg, bar);
 
     log::info!("Preview rendered to: {}", args.output.display());
     output::print_result(

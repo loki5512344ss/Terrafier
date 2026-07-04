@@ -1,9 +1,9 @@
-use std::sync::{Arc, OnceLock};
-use crate::model::types::Brush;
 use crate::model::dimension::Dimension;
-use crate::model::types::Terrain;
 use crate::model::tile::TILE_SIZE;
+use crate::model::types::Brush;
+use crate::model::types::Terrain;
 use crate::ops::operations::{Operation, OperationError, RestoreTerrainOperation};
+use std::sync::{Arc, OnceLock};
 
 struct BrushApply<'a> {
     tile: &'a mut crate::model::tile::Tile,

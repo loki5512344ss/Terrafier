@@ -1,4 +1,5 @@
 use clap::Parser;
+use std::path::PathBuf;
 
 mod cmds;
 mod util;
@@ -38,9 +39,18 @@ enum Commands {
     Info(cmds::info::InfoArgs),
     /// Render world preview to an image
     Render(cmds::render::RenderArgs),
+    /// Run a Terrafier script (.rhai)
+    #[cfg(feature = "scripting")]
+    Run {
+        /// Path to .rhai script file
+        script: PathBuf,
+    },
 }
 
 fn main() {
+    use terrafier_i18n as i18n;
+    i18n::init();
+
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info"))
         .format_timestamp(None)
         .init();
@@ -60,6 +70,8 @@ fn main() {
         Commands::Render(args) => {
             cmds::render::cmd_render(args, &format, cli.dry_run, cli.validate)
         }
+        #[cfg(feature = "scripting")]
+        Commands::Run { script } => cmds::cmd_run(&script),
     };
 
     if let Err(e) = result {

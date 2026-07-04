@@ -74,6 +74,8 @@ pub struct TerrafierApp {
     pub renderer: Option<GpuRenderer>,
     pub show_gpu_render: bool,
     pub gpu_status: GpuStatus,
+    pub view_offset: egui::Vec2,
+    pub view_zoom: f32,
     pub cpu_texture_handle: Option<egui::TextureHandle>,
     pub layer_visible: [bool; 6],
 }
@@ -96,7 +98,10 @@ impl TerrafierApp {
             gpu_renderer.register_texture(&mut renderer_lock);
             (Some(gpu_renderer), GpuStatus::Enabled)
         } else {
-            (None, GpuStatus::FallbackCpu("GPU init failed — no wgpu adapter found"))
+            (
+                None,
+                GpuStatus::FallbackCpu("GPU init failed — no wgpu adapter found"),
+            )
         };
 
         Self {
@@ -124,9 +129,10 @@ impl TerrafierApp {
             renderer,
             show_gpu_render: true,
             gpu_status,
+            view_offset: egui::Vec2::ZERO,
+            view_zoom: 1.0,
             cpu_texture_handle: None,
             layer_visible: [false; 6],
         }
     }
-
 }

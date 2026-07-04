@@ -1,0 +1,17 @@
+[package]
+name = "terrafier-wasm-host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "WASM plugin host for Terrafier using wasmtime"
+
+[dependencies]
+wasmtime = "46"
+terrafier-core = { path = "../../core" }
+anyhow.workspace = true
+thiserror.workspace = true
+log.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
+wat = "1"

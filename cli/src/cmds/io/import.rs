@@ -1,5 +1,6 @@
 use clap::Args;
 use std::path::Path;
+use terrafier_i18n as i18n;
 
 use crate::util::output::{self, OutputFormat};
 use crate::util::progress;
@@ -22,6 +23,9 @@ pub fn cmd_import(
     log::info!("Importing Minecraft save from: {}", input_path.display());
 
     if validate || dry_run {
+        if dry_run {
+            log::info!("{}", i18n::translate_with("cli.dry_run", &[("action", "import")]));
+        }
         terrafier_core::io::import::validate_save(input_path)?;
         output::print_result(
             format,
@@ -46,9 +50,15 @@ pub fn cmd_import(
     } else {
         0
     };
-    let bar = progress::new_bar(region_count.max(1) as u64, "Importing regions...");
+    let importing_msg = i18n::translate_with("cli.import.importing", &[("path", &args.input)]);
+    let bar = progress::new_bar(region_count.max(1) as u64, &importing_msg);
     let world = terrafier_core::io::import::import(input_path)?;
-    progress::finish_with("Import complete", bar);
+    let tile_count: usize = world.dimensions.iter().map(|d| d.tiles.len()).sum();
+    let import_msg = i18n::translate_with("cli.import.complete", &[
+        ("tiles", &tile_count.to_string()),
+        ("dimensions", &world.dimensions.len().to_string()),
+    ]);
+    progress::finish_with(&import_msg, bar);
 
     let output_path = Path::new(&args.output);
     std::fs::create_dir_all(output_path)?;
@@ -56,7 +66,6 @@ pub fn cmd_import(
     let world_json = serde_json::to_string_pretty(&world)?;
     std::fs::write(output_path.join("world.tfw"), &world_json)?;
 
-    let tile_count: usize = world.dimensions.iter().map(|d| d.tiles.len()).sum();
     log::info!(
         "Import complete: {} dimensions, {} tiles",
         world.dimensions.len(),

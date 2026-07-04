@@ -2,12 +2,12 @@ mod export;
 mod reader;
 mod version;
 
-pub use reader::load_save;
-pub use reader::discover_region_files;
 pub use export::save_world;
 pub use export::save_world_with_layers;
-pub use version::version_from_data_version;
+pub use reader::discover_region_files;
+pub use reader::load_save;
 pub(crate) use version::data_version;
+pub use version::version_from_data_version;
 
 use thiserror::Error;
 

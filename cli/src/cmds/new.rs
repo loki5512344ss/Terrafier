@@ -1,6 +1,7 @@
 use clap::Args;
 use std::path::PathBuf;
 use terrafier_core::World;
+use terrafier_i18n as i18n;
 
 use crate::util::output::{self, OutputFormat};
 use crate::util::progress;
@@ -42,9 +43,14 @@ pub fn cmd_new(
         }
     }
 
-    let spinner = progress::new_spinner("Generating world...");
+    let spinner = progress::new_spinner(i18n::t!("cli.new.creating"));
     let world = World::new(&args.name, args.seed);
-    progress::finish_with("World generated", spinner);
+    let tile_count = world.dimensions.iter().map(|d| d.tiles.len()).sum::<usize>();
+    let created_msg = i18n::translate_with("cli.new.created", &[
+        ("name", &args.name),
+        ("tiles", &tile_count.to_string()),
+    ]);
+    progress::finish_with(&created_msg, spinner);
 
     let world_dir = args.output.join(&args.name);
     std::fs::create_dir_all(&world_dir)?;
@@ -52,7 +58,6 @@ pub fn cmd_new(
     let world_json = serde_json::to_string_pretty(&world)?;
     std::fs::write(world_dir.join("world.tfw"), &world_json)?;
 
-    let dim = &world.dimensions[0];
     log::info!("World saved to: {}", world_dir.display());
     output::print_result(
         format,
@@ -61,7 +66,7 @@ pub fn cmd_new(
             "name": args.name,
             "seed": args.seed,
             "path": world_dir.display().to_string(),
-            "tiles": dim.tiles.len(),
+            "tiles": tile_count,
         }),
     );
 

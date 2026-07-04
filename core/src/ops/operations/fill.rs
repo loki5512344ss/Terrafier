@@ -2,8 +2,8 @@ use std::collections::VecDeque;
 use std::sync::OnceLock;
 
 use crate::model::dimension::Dimension;
-use crate::model::types::Terrain;
 use crate::model::tile::TILE_SIZE;
+use crate::model::types::Terrain;
 
 use super::{Operation, OperationError, RestoreTerrainOperation};
 

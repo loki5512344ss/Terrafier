@@ -3,7 +3,15 @@ name = "terrafier-gui"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
+authors.workspace = true
 description = "Native GUI for Terrafier — interactive world painting with GPU rendering"
+
+[package.metadata.wix]
+upgrade-guid = "A7365100-6923-4DAC-B4A5-2BD817EB802B"
+path-guid = "097E8AD4-180B-4B52-8BFE-04AA942D03A6"
+license = false
+eula = false
 
 [dependencies]
 terrafier-core = { path = "../core" }

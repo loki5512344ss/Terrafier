@@ -57,10 +57,10 @@ pub fn biome_name(
     "minecraft:plains"
 }
 
+mod biome_res;
 mod caves_frost;
 mod river_trees;
-mod biome_res;
 
+pub use biome_res::{BiomeLayerExport, ResourcesLayerExport};
 pub use caves_frost::{CavesLayerExport, FrostLayerExport};
 pub use river_trees::{RiverLayerExport, TreesLayerExport};
-pub use biome_res::{BiomeLayerExport, ResourcesLayerExport};
