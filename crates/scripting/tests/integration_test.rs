@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use terrafier_core::World;
 use terrafier_scripting::ScriptEngine;
 
@@ -21,16 +19,18 @@ fn test_new_world() {
 #[test]
 fn test_generate_flat_heightmap() {
     let mut engine = ScriptEngine::new();
-    let _ = engine
-        .run(
-            r#"
+    let tmp = std::env::temp_dir().join("test_flat.tfw");
+    let tmp_str = tmp.to_str().unwrap().to_string();
+    let script = format!(
+        r#"
         let world = new_world("flat_world", 42);
         generate_heightmap_flat(world, 64, "overworld");
-        save_world(world, "/tmp/test_flat.tfw");
+        save_world(world, "{}");
     "#,
-        )
-        .unwrap();
-    let loaded: World = terrafier_core::io::load_binary(Path::new("/tmp/test_flat.tfw")).unwrap();
+        tmp_str.replace('\\', "\\\\")
+    );
+    let _ = engine.run(&script).unwrap();
+    let loaded: World = terrafier_core::io::load_binary(&tmp).unwrap();
     if let Some(dim) = loaded.dimensions.first() {
         for tile in dim.tiles.values() {
             for z in 0..128 {
@@ -40,7 +40,7 @@ fn test_generate_flat_heightmap() {
             }
         }
     }
-    let _ = std::fs::remove_file("/tmp/test_flat.tfw");
+    let _ = std::fs::remove_file(&tmp);
 }
 
 #[test]
