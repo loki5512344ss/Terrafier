@@ -21,7 +21,7 @@ mod brush;
 mod fill;
 mod shaping;
 
-pub use brush::{FloodOperation, PaintOperation, PencilOperation};
+pub use brush::{PaintOperation, PencilOperation};
 pub use fill::FillOperation;
 pub use shaping::{
     ErodeOperation, FlattenOperation, HeightOperation, MultiTileOperation, SmoothOperation,

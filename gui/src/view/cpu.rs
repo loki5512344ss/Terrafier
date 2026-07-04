@@ -105,7 +105,7 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
         max_tz = max_tz.max(tz);
     }
 
-    let base_size = 64u32;
+    let base_size = 32u32;
     let zoom = app.view_zoom;
 
     let grid_w = ((max_tx - min_tx + 1) * base_size as i32) as usize;
@@ -190,10 +190,7 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
 
     // Viewport: allocate a large area for the world with scroll
     let viewport_size = Vec2::new(grid_w as f32 * zoom, grid_h as f32 * zoom);
-    let (response, painter) = ui.allocate_painter(
-        viewport_size,
-        egui::Sense::click_and_drag(),
-    );
+    let (response, painter) = ui.allocate_painter(viewport_size, egui::Sense::click_and_drag());
 
     // Handle scroll-wheel zoom
     let scroll_delta = ui.input(|i| i.raw_scroll_delta);
@@ -215,7 +212,10 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
         texture_id,
         egui::Rect::from_min_max(
             egui::pos2(rect.min.x + offset.x, rect.min.y + offset.y),
-            egui::pos2(rect.min.x + offset.x + grid_w as f32 * app.view_zoom, rect.min.y + offset.y + grid_h as f32 * app.view_zoom),
+            egui::pos2(
+                rect.min.x + offset.x + grid_w as f32 * app.view_zoom,
+                rect.min.y + offset.y + grid_h as f32 * app.view_zoom,
+            ),
         ),
         egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
         Color32::WHITE,
@@ -229,8 +229,7 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
     {
         let bx = rect.min.x + offset.x + (sel_tx - min_tx) as f32 * scaled_size;
         let bz = rect.min.y + offset.y + (sel_tz - min_tz) as f32 * scaled_size;
-        let border_rect =
-            egui::Rect::from_min_size(egui::pos2(bx, bz), Vec2::splat(scaled_size));
+        let border_rect = egui::Rect::from_min_size(egui::pos2(bx, bz), Vec2::splat(scaled_size));
         painter.rect_stroke(
             border_rect,
             0.0,
@@ -267,10 +266,12 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
             let tz = (lz / scaled_size).floor() as i32 + min_tz;
             if dim.tiles.contains_key(&(tx, tz)) {
                 app.selected_tile = Some((tx, tz));
-                let local_x =
-                    ((lx as u32 % scaled_size as u32) * TILE_SIZE as u32 / scaled_size as u32).min(127);
-                let local_z =
-                    ((lz as u32 % scaled_size as u32) * TILE_SIZE as u32 / scaled_size as u32).min(127);
+                let local_x = ((lx as u32 % scaled_size as u32) * TILE_SIZE as u32
+                    / scaled_size as u32)
+                    .min(127);
+                let local_z = ((lz as u32 % scaled_size as u32) * TILE_SIZE as u32
+                    / scaled_size as u32)
+                    .min(127);
                 app.brush_local_x = Some(local_x);
                 app.brush_local_z = Some(local_z);
                 app.status_message = format!(

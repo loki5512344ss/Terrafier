@@ -5,16 +5,20 @@ pub fn try_render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) -> bool
     let Some(ref world) = app.world else {
         return false;
     };
-    let dim = &world.dimensions[0];
+    let Some(dim) = world.dimensions.first() else {
+        return false;
+    };
+
+    // If world has more than one tile, fall back to CPU renderer
+    if dim.tiles.len() > 1 {
+        return false;
+    }
 
     if let Some(ref renderer) = app.renderer
         && let Some(texture_id) = renderer.texture_id
     {
         let desired_size = Vec2::new(512.0, 512.0);
-        let (response, painter) = ui.allocate_painter(
-            desired_size,
-            egui::Sense::click_and_drag(),
-        );
+        let (response, painter) = ui.allocate_painter(desired_size, egui::Sense::click_and_drag());
         let rect = response.rect;
 
         // Handle scroll-wheel zoom
@@ -50,8 +54,10 @@ pub fn try_render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) -> bool
         // GPU only renders the first tile - position it correctly
         // Use a default position for the rendered tile
         let first_tile_pos = dim.tiles.keys().next().copied().unwrap_or((0, 0));
-        let tex_origin_x = rect.min.x + offset.x + (first_tile_pos.0 - min_tx) as f32 * display_size;
-        let tex_origin_y = rect.min.y + offset.y + (first_tile_pos.1 - min_tz) as f32 * display_size;
+        let tex_origin_x =
+            rect.min.x + offset.x + (first_tile_pos.0 - min_tx) as f32 * display_size;
+        let tex_origin_y =
+            rect.min.y + offset.y + (first_tile_pos.1 - min_tz) as f32 * display_size;
 
         let tex_rect = egui::Rect::from_min_size(
             egui::pos2(tex_origin_x, tex_origin_y),
@@ -82,10 +88,14 @@ pub fn try_render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) -> bool
         {
             let tile_x_in_pixels = (sel_tx - min_tx) as f32 * display_size;
             let tile_z_in_pixels = (sel_tz - min_tz) as f32 * display_size;
-            let brush_x =
-                rect.min.x + offset.x + tile_x_in_pixels + (bx as f32 * display_size / TILE_SIZE as f32);
-            let brush_z =
-                rect.min.y + offset.y + tile_z_in_pixels + (bz as f32 * display_size / TILE_SIZE as f32);
+            let brush_x = rect.min.x
+                + offset.x
+                + tile_x_in_pixels
+                + (bx as f32 * display_size / TILE_SIZE as f32);
+            let brush_z = rect.min.y
+                + offset.y
+                + tile_z_in_pixels
+                + (bz as f32 * display_size / TILE_SIZE as f32);
             let brush_radius_px = app.brush_radius as f32 * display_size / TILE_SIZE as f32;
             painter.circle_stroke(
                 egui::pos2(brush_x, brush_z),

@@ -1,5 +1,10 @@
 use std::sync::Arc;
 
+const TILE_SIZE: u32 = 128;
+const TILE_CELLS: u32 = TILE_SIZE * TILE_SIZE;
+const HEIGHTMAP_PACKED_SIZE: u64 = (TILE_CELLS / 2) as u64 * 4;
+const TERRAIN_PACKED_SIZE: u64 = (TILE_CELLS / 4) as u64 * 4;
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct Uniforms {
@@ -111,13 +116,13 @@ impl GpuRenderer {
         });
         let heightmap_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("heightmap_buffer"),
-            size: 8192 * 4,
+            size: HEIGHTMAP_PACKED_SIZE,
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
         let terrain_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("terrain_buffer"),
-            size: 4096 * 4,
+            size: TERRAIN_PACKED_SIZE,
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });

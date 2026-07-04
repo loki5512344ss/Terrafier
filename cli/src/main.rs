@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::path::PathBuf;
 
 mod cmds;
 mod util;
@@ -43,7 +42,7 @@ enum Commands {
     #[cfg(feature = "scripting")]
     Run {
         /// Path to .rhai script file
-        script: PathBuf,
+        script: std::path::PathBuf,
     },
 }
 

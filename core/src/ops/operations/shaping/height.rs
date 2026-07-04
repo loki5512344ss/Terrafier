@@ -1,5 +1,4 @@
-use std::sync::Arc;
-use std::sync::OnceLock;
+use std::sync::{Arc, Mutex};
 
 use crate::model::dimension::Dimension;
 use crate::model::tile::TILE_SIZE;
@@ -16,7 +15,7 @@ pub struct HeightOperation {
     pub radius: u32,
     pub delta: i16,
     pub brush: Arc<dyn Brush>,
-    pub before_snapshot: OnceLock<Vec<(usize, i16)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, i16)>>>,
 }
 
 impl Operation for HeightOperation {
@@ -55,7 +54,7 @@ impl Operation for HeightOperation {
 
                 let idx = (az as usize) * TILE_SIZE + (ax as usize);
 
-                if self.before_snapshot.get().is_none() {
+                if self.before_snapshot.lock().unwrap().is_none() {
                     heights.push((idx, tile.heightmap[idx]));
                 }
 
@@ -66,15 +65,20 @@ impl Operation for HeightOperation {
             }
         }
 
-        if self.before_snapshot.get().is_none() {
-            let _ = self.before_snapshot.set(heights);
+        if self.before_snapshot.lock().unwrap().is_none() {
+            self.before_snapshot.lock().unwrap().replace(heights);
         }
 
         Ok(())
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreHeightsOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,
@@ -92,7 +96,7 @@ pub struct FlattenOperation {
     pub radius: u32,
     pub target_height: i16,
     pub brush: Arc<dyn Brush>,
-    pub before_snapshot: OnceLock<Vec<(usize, i16)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, i16)>>>,
 }
 
 impl Operation for FlattenOperation {
@@ -131,7 +135,7 @@ impl Operation for FlattenOperation {
 
                 let idx = (az as usize) * TILE_SIZE + (ax as usize);
 
-                if self.before_snapshot.get().is_none() {
+                if self.before_snapshot.lock().unwrap().is_none() {
                     heights.push((idx, tile.heightmap[idx]));
                 }
 
@@ -145,15 +149,20 @@ impl Operation for FlattenOperation {
             }
         }
 
-        if self.before_snapshot.get().is_none() {
-            let _ = self.before_snapshot.set(heights);
+        if self.before_snapshot.lock().unwrap().is_none() {
+            self.before_snapshot.lock().unwrap().replace(heights);
         }
 
         Ok(())
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreHeightsOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,

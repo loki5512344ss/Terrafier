@@ -86,41 +86,74 @@ pub fn load_save(path: &Path) -> Result<World> {
                                     let mut sorted: Vec<_> = chunk.sections.iter().collect();
                                     sorted.sort_by_key(|b| std::cmp::Reverse(b.section_y));
 
-                                    for section in &sorted {
+                                    'section_loop: for section in &sorted {
                                         if section.palette.is_empty() {
                                             continue;
                                         }
 
-                                        let has_blocks = section.palette.iter().any(|p| {
-                                            p.get("Name").is_some_and(|n| {
-                                                matches!(
-                                                    n,
-                                                    terrafier_nbt::Tag::String(s)
-                                                        if s != "minecraft:air"
-                                                )
+                                        let non_air_indices: Vec<usize> = section
+                                            .palette
+                                            .iter()
+                                            .enumerate()
+                                            .filter(|(_, p)| {
+                                                p.get("Name").is_some_and(|n| {
+                                                    matches!(
+                                                        n,
+                                                        terrafier_nbt::Tag::String(s)
+                                                            if s != "minecraft:air"
+                                                    )
+                                                })
                                             })
-                                        });
+                                            .map(|(i, _)| i)
+                                            .collect();
 
-                                        if !has_blocks {
+                                        if non_air_indices.is_empty() {
                                             continue;
                                         }
 
                                         if section.block_data.is_empty() {
-                                            if section.palette[0].get("Name").is_some_and(|n| {
-                                                matches!(
-                                                    n,
-                                                    terrafier_nbt::Tag::String(s)
-                                                        if s == "minecraft:air"
-                                                )
-                                            }) {
-                                                continue;
-                                            }
                                             surface_y = Some((section.section_y as i32) * 16 + 15);
                                             break;
                                         }
 
-                                        surface_y = Some((section.section_y as i32) * 16 + 15);
-                                        break;
+                                        let bpe = std::cmp::max(
+                                            4,
+                                            (section.palette.len() as f64).log2().ceil() as usize,
+                                        );
+
+                                        for dy in (0..16usize).rev() {
+                                            let block_index = dy * 256 + lz * 16 + lx;
+                                            let bit_pos = block_index * bpe;
+                                            let long_idx = bit_pos / 64;
+                                            let bit_off = bit_pos % 64;
+
+                                            if let Some(&word) = section.block_data.get(long_idx) {
+                                                let palette_index = if bit_off + bpe <= 64 {
+                                                    let mask = (1u64 << bpe) - 1;
+                                                    ((word as u64 >> bit_off) & mask) as usize
+                                                } else {
+                                                    let low_bits = 64 - bit_off;
+                                                    let low = ((word as u64) >> bit_off) as usize;
+                                                    let high_bits = bit_off + bpe - 64;
+                                                    let high = section
+                                                        .block_data
+                                                        .get(long_idx + 1)
+                                                        .map(|&w| {
+                                                            (w as u64 & ((1u64 << high_bits) - 1))
+                                                                as usize
+                                                        })
+                                                        .unwrap_or(0);
+                                                    low | (high << low_bits)
+                                                };
+
+                                                if non_air_indices.contains(&palette_index) {
+                                                    surface_y = Some(
+                                                        (section.section_y as i32) * 16 + dy as i32,
+                                                    );
+                                                    break 'section_loop;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 

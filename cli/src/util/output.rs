@@ -37,10 +37,10 @@ fn print_human(result: &Value) {
                 let tiles = result["tiles"].as_u64().unwrap_or(0);
                 println!(
                     "{}",
-                    i18n::translate_with("cli.new.created", &[
-                        ("name", name),
-                        ("tiles", &tiles.to_string()),
-                    ])
+                    i18n::translate_with(
+                        "cli.new.created",
+                        &[("name", name), ("tiles", &tiles.to_string()),]
+                    )
                 );
                 let _ = seed;
             }
@@ -48,10 +48,10 @@ fn print_human(result: &Value) {
                 let tiles = result["tiles"].as_u64().unwrap_or(0);
                 println!(
                     "{}",
-                    i18n::translate_with("cli.export.complete", &[
-                        ("regions", "?"),
-                        ("chunks", &tiles.to_string()),
-                    ])
+                    i18n::translate_with(
+                        "cli.export.complete",
+                        &[("regions", "?"), ("chunks", &tiles.to_string()),]
+                    )
                 );
             }
             "imported" => {
@@ -60,10 +60,13 @@ fn print_human(result: &Value) {
                 let dims = result["dimensions"].as_u64().unwrap_or(0);
                 println!(
                     "{}",
-                    i18n::translate_with("cli.import.complete", &[
-                        ("tiles", &tiles.to_string()),
-                        ("dimensions", &dims.to_string()),
-                    ])
+                    i18n::translate_with(
+                        "cli.import.complete",
+                        &[
+                            ("tiles", &tiles.to_string()),
+                            ("dimensions", &dims.to_string()),
+                        ]
+                    )
                 );
                 let _ = name;
             }
@@ -71,9 +74,7 @@ fn print_human(result: &Value) {
                 let output = result["output"].as_str().unwrap_or("?");
                 println!(
                     "{}",
-                    i18n::translate_with("cli.render.saved", &[
-                        ("path", output),
-                    ])
+                    i18n::translate_with("cli.render.saved", &[("path", output),])
                 );
             }
             "validated" => {
@@ -125,17 +126,15 @@ fn print_human_info(result: &Value) {
     if let Some(dims) = result.get("dimensions").and_then(|v| v.as_array()) {
         println!(
             "  {}",
-            i18n::translate_with("cli.info.dimensions", &[
-                ("dimensions", &dims.len().to_string()),
-            ])
+            i18n::translate_with(
+                "cli.info.dimensions",
+                &[("dimensions", &dims.len().to_string()),]
+            )
         );
         for dim in dims {
             let dim_name = dim["name"].as_str().unwrap_or("?");
             let dim_tiles = dim["tiles"].as_u64().unwrap_or(0);
-            println!(
-                "    - {} ({} tiles)",
-                dim_name, dim_tiles
-            );
+            println!("    - {} ({} tiles)", dim_name, dim_tiles);
         }
     }
     if let Some(tiles) = result.get("total_tiles").and_then(|v| v.as_u64()) {

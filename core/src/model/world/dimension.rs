@@ -55,6 +55,8 @@ impl<'de> Deserialize<'de> for Dimension {
                 && let (Ok(tx), Ok(tz)) = (tx_s.parse::<i32>(), tz_s.parse::<i32>())
             {
                 tiles.insert((tx, tz), tile);
+            } else {
+                log::warn!("Skipping dimension tile with malformed key: {}", key);
             }
         }
         Ok(Self {

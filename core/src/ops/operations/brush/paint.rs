@@ -3,7 +3,7 @@ use crate::model::tile::TILE_SIZE;
 use crate::model::types::Brush;
 use crate::model::types::Terrain;
 use crate::ops::operations::{Operation, OperationError, RestoreTerrainOperation};
-use std::sync::{Arc, OnceLock};
+use std::sync::{Arc, Mutex};
 
 struct BrushApply<'a> {
     tile: &'a mut crate::model::tile::Tile,
@@ -12,7 +12,7 @@ struct BrushApply<'a> {
     radius: u32,
     terrain_id: u8,
     brush: &'a dyn Brush,
-    snapshot: &'a OnceLock<Vec<(usize, u8)>>,
+    snapshot: &'a Mutex<Option<Vec<(usize, u8)>>>,
     snapshot_buf: &'a mut Vec<(usize, u8)>,
 }
 
@@ -25,11 +25,11 @@ fn apply_brush_terrain(args: BrushApply) {
             if ax < 0 || az < 0 || ax >= TILE_SIZE as i32 || az >= TILE_SIZE as i32 {
                 continue;
             }
-            if args.brush.get_strength(dx as f64, dz as f64) == 0.0 {
+            if args.brush.get_strength(dx as f64, dz as f64) < 0.3 {
                 continue;
             }
             let idx = (az as usize) * TILE_SIZE + (ax as usize);
-            if args.snapshot.get().is_none() {
+            if args.snapshot.lock().unwrap().is_none() {
                 args.snapshot_buf.push((idx, args.tile.terrain[idx]));
             }
             args.tile.terrain[idx] = args.terrain_id;
@@ -46,7 +46,7 @@ pub struct PaintOperation {
     pub radius: u32,
     pub terrain: Terrain,
     pub brush: Arc<dyn Brush>,
-    pub before_snapshot: OnceLock<Vec<(usize, u8)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, u8)>>>,
 }
 
 impl Operation for PaintOperation {
@@ -77,66 +77,19 @@ impl Operation for PaintOperation {
             snapshot_buf: &mut snapshot_buf,
         });
 
-        let _ = self.before_snapshot.get_or_init(|| snapshot_buf);
+        if self.before_snapshot.lock().unwrap().is_none() {
+            self.before_snapshot.lock().unwrap().replace(snapshot_buf);
+        }
         Ok(())
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
-        Box::new(RestoreTerrainOperation {
-            tile_x: self.tile_x,
-            tile_z: self.tile_z,
-            snapshot,
-        })
-    }
-}
-
-/// Set all terrain within brush area to a single type (hard replace regardless of strength).
-pub struct FloodOperation {
-    pub tile_x: i32,
-    pub tile_z: i32,
-    pub center_x: u32,
-    pub center_z: u32,
-    pub radius: u32,
-    pub terrain: Terrain,
-    pub brush: Arc<dyn Brush>,
-    pub before_snapshot: OnceLock<Vec<(usize, u8)>>,
-}
-
-impl Operation for FloodOperation {
-    fn name(&self) -> &'static str {
-        "Flood"
-    }
-
-    fn apply(&self, dim: &mut Dimension) -> Result<(), OperationError> {
-        let tile =
-            dim.tiles
-                .get_mut(&(self.tile_x, self.tile_z))
-                .ok_or(OperationError::OutOfBounds {
-                    tx: self.tile_x,
-                    tz: self.tile_z,
-                    x: 0,
-                    z: 0,
-                })?;
-
-        let mut snapshot_buf = Vec::new();
-        apply_brush_terrain(BrushApply {
-            tile,
-            cx: self.center_x as i32,
-            cz: self.center_z as i32,
-            radius: self.radius,
-            terrain_id: self.terrain as u8,
-            brush: self.brush.as_ref(),
-            snapshot: &self.before_snapshot,
-            snapshot_buf: &mut snapshot_buf,
-        });
-
-        let _ = self.before_snapshot.get_or_init(|| snapshot_buf);
-        Ok(())
-    }
-
-    fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreTerrainOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,
@@ -152,7 +105,7 @@ pub struct PencilOperation {
     pub center_x: u32,
     pub center_z: u32,
     pub terrain: Terrain,
-    pub before_snapshot: OnceLock<Vec<(usize, u8)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, u8)>>>,
 }
 
 impl Operation for PencilOperation {
@@ -183,8 +136,11 @@ impl Operation for PencilOperation {
         }
 
         let idx = cz * TILE_SIZE + cx;
-        if self.before_snapshot.get().is_none() {
-            let _ = self.before_snapshot.set(vec![(idx, tile.terrain[idx])]);
+        if self.before_snapshot.lock().unwrap().is_none() {
+            self.before_snapshot
+                .lock()
+                .unwrap()
+                .replace(vec![(idx, tile.terrain[idx])]);
         }
         tile.terrain[idx] = self.terrain as u8;
 
@@ -192,7 +148,12 @@ impl Operation for PencilOperation {
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreTerrainOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,

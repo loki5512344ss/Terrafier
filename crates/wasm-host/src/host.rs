@@ -46,11 +46,7 @@ fn host_log(mut caller: Caller<'_, WorldContext>, level: i32, ptr: i32, len: i32
 }
 
 fn host_get_seed(caller: Caller<'_, WorldContext>) -> i64 {
-    let (lo, hi) = (
-        (caller.data().seed & 0xFFFF_FFFF) as i64,
-        ((caller.data().seed >> 32) & 0xFFFF_FFFF) as i64,
-    );
-    lo | (hi << 32)
+    caller.data().seed as i64
 }
 
 fn host_tile_size(_caller: Caller<'_, WorldContext>) -> i32 {

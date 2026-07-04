@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::sync::OnceLock;
+use std::sync::Mutex;
 
 use crate::model::dimension::Dimension;
 use crate::model::tile::TILE_SIZE;
@@ -14,7 +14,7 @@ pub struct FillOperation {
     pub center_x: u32,
     pub center_z: u32,
     pub terrain: Terrain,
-    pub before_snapshot: OnceLock<Vec<(usize, u8)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, u8)>>>,
 }
 
 impl Operation for FillOperation {
@@ -60,7 +60,7 @@ impl Operation for FillOperation {
 
         while let Some((x, z)) = queue.pop_front() {
             let i = z * TILE_SIZE + x;
-            if self.before_snapshot.get().is_none() {
+            if self.before_snapshot.lock().unwrap().is_none() {
                 snapshot.push((i, tile.terrain[i]));
             }
             tile.terrain[i] = target_terrain;
@@ -80,15 +80,20 @@ impl Operation for FillOperation {
             }
         }
 
-        if self.before_snapshot.get().is_none() {
-            let _ = self.before_snapshot.set(snapshot);
+        if self.before_snapshot.lock().unwrap().is_none() {
+            self.before_snapshot.lock().unwrap().replace(snapshot);
         }
 
         Ok(())
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreTerrainOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,

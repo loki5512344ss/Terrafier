@@ -24,7 +24,10 @@ pub fn cmd_import(
 
     if validate || dry_run {
         if dry_run {
-            log::info!("{}", i18n::translate_with("cli.dry_run", &[("action", "import")]));
+            log::info!(
+                "{}",
+                i18n::translate_with("cli.dry_run", &[("action", "import")])
+            );
         }
         terrafier_core::io::import::validate_save(input_path)?;
         output::print_result(
@@ -54,10 +57,13 @@ pub fn cmd_import(
     let bar = progress::new_bar(region_count.max(1) as u64, &importing_msg);
     let world = terrafier_core::io::import::import(input_path)?;
     let tile_count: usize = world.dimensions.iter().map(|d| d.tiles.len()).sum();
-    let import_msg = i18n::translate_with("cli.import.complete", &[
-        ("tiles", &tile_count.to_string()),
-        ("dimensions", &world.dimensions.len().to_string()),
-    ]);
+    let import_msg = i18n::translate_with(
+        "cli.import.complete",
+        &[
+            ("tiles", &tile_count.to_string()),
+            ("dimensions", &world.dimensions.len().to_string()),
+        ],
+    );
     progress::finish_with(&import_msg, bar);
 
     let output_path = Path::new(&args.output);

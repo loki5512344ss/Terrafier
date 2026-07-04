@@ -45,11 +45,15 @@ pub fn cmd_new(
 
     let spinner = progress::new_spinner(i18n::t!("cli.new.creating"));
     let world = World::new(&args.name, args.seed);
-    let tile_count = world.dimensions.iter().map(|d| d.tiles.len()).sum::<usize>();
-    let created_msg = i18n::translate_with("cli.new.created", &[
-        ("name", &args.name),
-        ("tiles", &tile_count.to_string()),
-    ]);
+    let tile_count = world
+        .dimensions
+        .iter()
+        .map(|d| d.tiles.len())
+        .sum::<usize>();
+    let created_msg = i18n::translate_with(
+        "cli.new.created",
+        &[("name", &args.name), ("tiles", &tile_count.to_string())],
+    );
     progress::finish_with(&created_msg, spinner);
 
     let world_dir = args.output.join(&args.name);

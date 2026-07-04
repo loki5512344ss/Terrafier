@@ -27,8 +27,8 @@ pub type Result<T> = std::result::Result<T, BinaryError>;
 /// Save a `World` to a binary file.
 pub fn save_binary(world: &World, path: &Path) -> Result<()> {
     let config = bincode::config::standard();
-    let bytes =
-        bincode::serde::encode_to_vec(world, config).map_err(|e| BinaryError::Serialize(e.to_string()))?;
+    let bytes = bincode::serde::encode_to_vec(world, config)
+        .map_err(|e| BinaryError::Serialize(e.to_string()))?;
 
     std::fs::write(path, &bytes)?;
     Ok(())
@@ -38,9 +38,8 @@ pub fn save_binary(world: &World, path: &Path) -> Result<()> {
 pub fn load_binary(path: &Path) -> Result<World> {
     let bytes = std::fs::read(path)?;
     let config = bincode::config::standard();
-    let (world, _): (World, usize) =
-        bincode::serde::decode_from_slice(&bytes, config)
-            .map_err(|e| BinaryError::Deserialize(e.to_string()))?;
+    let (world, _): (World, usize) = bincode::serde::decode_from_slice(&bytes, config)
+        .map_err(|e| BinaryError::Deserialize(e.to_string()))?;
     Ok(world)
 }
 

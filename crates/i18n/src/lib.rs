@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU8, Ordering};
 use std::sync::LazyLock;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 mod lang;
 pub use lang::Language;
@@ -57,11 +57,6 @@ macro_rules! t {
     ($key:expr) => {
         $crate::translate($key)
     };
-    ($key:expr, $($var:ident = $val:expr),+ $(,)?) => {{
-        let vars: &[(&str, &str)] = &[$((stringify!($var), &$val as &dyn std::fmt::Display as &str)),+];
-        // This won't work with runtime format. Use translate_with instead.
-        $crate::translate_with($key, &[$((stringify!($var), &$val.as_ref() as &str)),+])
-    }};
 }
 
 /// Detect system language from environment variables (LANG, LANGUAGE, LC_ALL).
@@ -106,10 +101,7 @@ mod tests {
 
     #[test]
     fn test_translate_with_vars() {
-        let result = translate_with("cli.new.created", &[
-            ("name", "test"),
-            ("tiles", "9"),
-        ]);
+        let result = translate_with("cli.new.created", &[("name", "test"), ("tiles", "9")]);
         assert!(result.contains("test"));
         assert!(result.contains("9"));
     }

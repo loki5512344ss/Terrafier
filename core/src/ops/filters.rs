@@ -3,7 +3,7 @@ use crate::model::dimension::Dimension;
 use crate::model::tile::{TILE_SIZE, Tile};
 use crate::model::types::Terrain;
 use crate::ops::operations::{Operation, OperationError, RestoreHeightsOperation};
-use std::sync::OnceLock;
+use std::sync::Mutex;
 /// Determines whether a cell should be modified by an operation.
 pub trait Filter: Send + Sync {
     fn name(&self) -> &'static str;
@@ -121,7 +121,7 @@ pub struct FilteredOperation {
     pub center_x: u32,
     pub center_z: u32,
     pub radius: u32,
-    pub before_snapshot: OnceLock<Vec<(usize, i16)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, i16)>>>,
 }
 
 impl Operation for FilteredOperation {
@@ -130,7 +130,7 @@ impl Operation for FilteredOperation {
     }
 
     fn apply(&self, dim: &mut Dimension) -> Result<(), OperationError> {
-        let is_first_apply = self.before_snapshot.get().is_none();
+        let is_first_apply = self.before_snapshot.lock().unwrap().is_none();
 
         let snapshot: Vec<(usize, i16)> = if is_first_apply {
             let tile =
@@ -159,10 +159,14 @@ impl Operation for FilteredOperation {
                     snap.push((idx, tile.heightmap[idx]));
                 }
             }
-            let _ = self.before_snapshot.set(snap.clone());
+            self.before_snapshot.lock().unwrap().replace(snap.clone());
             snap
         } else {
-            self.before_snapshot.get().cloned().unwrap_or_default()
+            self.before_snapshot
+                .lock()
+                .unwrap()
+                .clone()
+                .unwrap_or_default()
         };
 
         self.operation.apply(dim)?;
@@ -189,7 +193,12 @@ impl Operation for FilteredOperation {
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreHeightsOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,

@@ -1,5 +1,4 @@
-use std::sync::Arc;
-use std::sync::OnceLock;
+use std::sync::{Arc, Mutex};
 
 use crate::model::dimension::Dimension;
 use crate::model::tile::TILE_SIZE;
@@ -17,7 +16,7 @@ pub struct ErodeOperation {
     pub iterations: u32,
     pub talus_angle: f64,
     pub brush: Arc<dyn Brush>,
-    pub before_snapshot: OnceLock<Vec<(usize, i16)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, i16)>>>,
 }
 
 impl Operation for ErodeOperation {
@@ -42,7 +41,7 @@ impl Operation for ErodeOperation {
 
         // Snapshot original heights on first apply
         let mut snapshot: Vec<(usize, i16)> = Vec::new();
-        let is_first_apply = self.before_snapshot.get().is_none();
+        let is_first_apply = self.before_snapshot.lock().unwrap().is_none();
         if is_first_apply {
             for dz in -r..=r {
                 for dx in -r..=r {
@@ -60,7 +59,7 @@ impl Operation for ErodeOperation {
             }
         }
         if is_first_apply {
-            let _ = self.before_snapshot.set(snapshot);
+            self.before_snapshot.lock().unwrap().replace(snapshot);
         }
 
         // Apply erosion for `iterations` passes
@@ -142,7 +141,12 @@ impl Operation for ErodeOperation {
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreHeightsOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,

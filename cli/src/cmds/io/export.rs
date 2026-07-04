@@ -33,7 +33,10 @@ pub fn cmd_export(
 
     if validate || dry_run {
         if dry_run {
-            log::info!("{}", i18n::translate_with("cli.dry_run", &[("action", "export")]));
+            log::info!(
+                "{}",
+                i18n::translate_with("cli.dry_run", &[("action", "export")])
+            );
         }
         output::print_result(
             format,

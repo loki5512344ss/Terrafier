@@ -1,5 +1,4 @@
-use std::sync::Arc;
-use std::sync::OnceLock;
+use std::sync::{Arc, Mutex};
 
 use crate::model::dimension::Dimension;
 use crate::model::tile::TILE_SIZE;
@@ -16,7 +15,7 @@ pub struct SmoothOperation {
     pub radius: u32,
     pub iterations: u32,
     pub brush: Arc<dyn Brush>,
-    pub before_snapshot: OnceLock<Vec<(usize, i16)>>,
+    pub before_snapshot: Mutex<Option<Vec<(usize, i16)>>>,
 }
 
 impl Operation for SmoothOperation {
@@ -51,7 +50,7 @@ impl Operation for SmoothOperation {
                 if self.brush.get_strength(dx as f64, dz as f64) <= 0.0 {
                     continue;
                 }
-                if self.before_snapshot.get().is_none() {
+                if self.before_snapshot.lock().unwrap().is_none() {
                     snapshot.push((
                         (az as usize) * TILE_SIZE + (ax as usize),
                         tile.heightmap[(az as usize) * TILE_SIZE + (ax as usize)],
@@ -59,8 +58,8 @@ impl Operation for SmoothOperation {
                 }
             }
         }
-        if self.before_snapshot.get().is_none() {
-            let _ = self.before_snapshot.set(snapshot);
+        if self.before_snapshot.lock().unwrap().is_none() {
+            self.before_snapshot.lock().unwrap().replace(snapshot);
         }
 
         // Apply smoothing for `iterations` passes
@@ -110,7 +109,12 @@ impl Operation for SmoothOperation {
     }
 
     fn inverse(&self) -> Box<dyn Operation> {
-        let snapshot = self.before_snapshot.get().cloned().unwrap_or_default();
+        let snapshot = self
+            .before_snapshot
+            .lock()
+            .unwrap()
+            .clone()
+            .unwrap_or_default();
         Box::new(RestoreHeightsOperation {
             tile_x: self.tile_x,
             tile_z: self.tile_z,
