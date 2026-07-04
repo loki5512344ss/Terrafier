@@ -5,13 +5,12 @@ use std::fs;
 use std::path::Path;
 
 use crate::io::layer_export::LayerExport;
-use crate::io::minecraft::{Result, data_version};
+use crate::io::minecraft::{data_version, Result};
 use crate::model::tile::Tile;
 use crate::model::world::World;
 
 use super::chunk::{build_chunk_nbt, build_chunk_nbt_with_layers};
 
-#[allow(clippy::type_complexity)]
 type RegionTiles<'a> = BTreeMap<(i32, i32), Vec<(&'a (i32, i32), &'a Tile)>>;
 
 fn dim_region_path(output_path: &Path, dim_name: &str) -> std::path::PathBuf {

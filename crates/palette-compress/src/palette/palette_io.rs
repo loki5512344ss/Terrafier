@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use terrafier_nbt::Tag;
 
-use super::palette::{BlockPalette, BlockState};
+use super::palette_impl::{BlockPalette, BlockState};
 
 impl BlockState {
     /// Parse from `TAG_Compound` with `"Name"` and optional `"Properties"`.
@@ -73,7 +73,7 @@ impl BlockPalette {
 
 #[cfg(test)]
 mod tests {
-    use super::super::palette::{BlockPalette, BlockState};
+    use super::super::palette_impl::{BlockPalette, BlockState};
     use terrafier_nbt::Tag;
 
     #[test]

@@ -1,5 +1,5 @@
 pub mod dimension;
-pub mod world;
+mod world_impl;
 
 pub use dimension::*;
-pub use world::*;
+pub use world_impl::*;

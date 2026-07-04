@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::chunk::{Chunk, ChunkSection};
+use super::chunk_impl::{Chunk, ChunkSection};
 
 impl Chunk {
     /// Serialize this chunk back to an NBT Compound tag.

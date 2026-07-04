@@ -1,4 +1,4 @@
-mod region;
+mod region_impl;
 mod region_write;
 
-pub use region::*;
+pub use region_impl::*;

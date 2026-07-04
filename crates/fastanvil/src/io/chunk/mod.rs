@@ -1,4 +1,4 @@
-mod chunk;
+mod chunk_impl;
 mod chunk_write;
 
-pub use chunk::*;
+pub use chunk_impl::*;

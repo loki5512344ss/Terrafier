@@ -1,6 +1,6 @@
 use crate::compression::{self, CompressionType};
 
-use super::region::{Region, Result};
+use super::region_impl::{Region, Result};
 
 impl Region {
     /// Serialize region back to .mca bytes.

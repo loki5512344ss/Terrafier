@@ -1,4 +1,4 @@
-mod palette;
+mod palette_impl;
 mod palette_io;
 
-pub use palette::*;
+pub use palette_impl::*;
