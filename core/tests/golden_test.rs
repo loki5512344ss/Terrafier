@@ -63,8 +63,7 @@ fn make_chunk_nbt_gzip(cx: i32, cz: i32) -> Vec<u8> {
     biomes.insert("palette".into(), Tag::List(biome_palette));
     section.insert("biomes".into(), Tag::Compound(biomes));
 
-    let mut sections = Vec::new();
-    sections.push(Tag::Compound(section));
+    let sections = vec![Tag::Compound(section)];
     chunk.insert("sections".into(), Tag::List(sections));
 
     to_gzip_bytes(&Tag::Compound(chunk)).unwrap()
@@ -133,7 +132,7 @@ fn test_golden_mca_roundtrip() {
     std::fs::create_dir_all(world_path.join("region")).unwrap();
 
     // Write level.dat
-    std::fs::write(world_path.join("level.dat"), &make_level_dat()).unwrap();
+    std::fs::write(world_path.join("level.dat"), make_level_dat()).unwrap();
 
     // Build and write region r.0.0.mca
     let chunk_gzip = make_chunk_nbt_gzip(0, 0);

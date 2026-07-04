@@ -21,6 +21,7 @@ fn dim_region_path(output_path: &Path, dim_name: &str) -> std::path::PathBuf {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn write_dimension(
     dim: &crate::model::dimension::Dimension,
     output_path: &Path,

@@ -24,7 +24,7 @@ fn layer_value(
 ) -> Option<f32> {
     let layer_id = LAYER_IDS[layer_idx];
     let buf = tile.layer_data.get(&layer_id)?;
-    let val = match buf {
+    match buf {
         LayerBuffer::Bit(data) => {
             let word = data.get(idx / 64)?;
             Some(if (word >> (idx % 64)) & 1 != 0 {
@@ -35,7 +35,7 @@ fn layer_value(
         }
         LayerBuffer::Nibble(data) => {
             let byte = *data.get(idx / 2)?;
-            let nib = if idx % 2 == 0 {
+            let nib = if idx.is_multiple_of(2) {
                 byte & 0x0F
             } else {
                 (byte >> 4) & 0x0F
@@ -47,8 +47,7 @@ fn layer_value(
             Some(v / 255.0)
         }
         LayerBuffer::Int(_) => None,
-    };
-    val
+    }
 }
 
 fn layer_overlay(layer_idx: usize, value: f32) -> Option<(u8, u8, u8)> {
@@ -152,17 +151,16 @@ pub fn render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) {
                 };
 
                 for li in 0..6 {
-                    if app.layer_visible[li] {
-                        if let Some(val) = layer_value(tile, idx, li) {
-                            if let Some(over) = layer_overlay(li, val) {
-                                let alpha = if val > 0.0 {
-                                    (val * 0.6 + 0.2).min(0.8)
-                                } else {
-                                    0.0
-                                };
-                                (r, g, b) = blend_overlay((r, g, b), over, alpha);
-                            }
-                        }
+                    if app.layer_visible[li]
+                        && let Some(val) = layer_value(tile, idx, li)
+                        && let Some(over) = layer_overlay(li, val)
+                    {
+                        let alpha = if val > 0.0 {
+                            (val * 0.6 + 0.2).min(0.8)
+                        } else {
+                            0.0
+                        };
+                        (r, g, b) = blend_overlay((r, g, b), over, alpha);
                     }
                 }
 

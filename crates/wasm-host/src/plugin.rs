@@ -98,7 +98,7 @@ impl WasmTileSourcePlugin {
         tile_z: i32,
     ) -> Result<(Store<WorldContext>, Instance), WasmHostError> {
         let mut linker = Linker::new(&self.engine);
-        register_host_functions(&mut linker).map_err(|e| WasmHostError::LoadError(e.into()))?;
+        register_host_functions(&mut linker).map_err(WasmHostError::LoadError)?;
 
         let ctx = WorldContext {
             tile: tile.clone(),

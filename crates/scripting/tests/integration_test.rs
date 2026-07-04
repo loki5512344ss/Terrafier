@@ -32,7 +32,7 @@ fn test_generate_flat_heightmap() {
         .unwrap();
     let loaded: World = terrafier_core::io::load_binary(Path::new("/tmp/test_flat.tfw")).unwrap();
     if let Some(dim) = loaded.dimensions.first() {
-        for (_, tile) in &dim.tiles {
+        for tile in dim.tiles.values() {
             for z in 0..128 {
                 for x in 0..128 {
                     assert_eq!(tile.get_height(x, z), 64);

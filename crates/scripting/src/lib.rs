@@ -52,7 +52,7 @@ fn generate_heightmap_flat_fn(
     let flat = FlatHeightMap {
         height: height as i16,
     };
-    for (_, tile) in &mut dim.tiles {
+    for tile in dim.tiles.values_mut() {
         flat.generate(tile, world.seed);
     }
     Ok(())
@@ -77,7 +77,7 @@ fn generate_heightmap_noise_fn(
         scale_x: 1.0,
         scale_z: 1.0,
     };
-    for (_, tile) in &mut dim.tiles {
+    for tile in dim.tiles.values_mut() {
         noise.generate(tile, seed as u64);
     }
     Ok(())
@@ -117,10 +117,16 @@ fn generate_layers_fn(world: &mut World, dim_name: &str) -> Result<(), Box<EvalA
         .iter_mut()
         .find(|d| d.name == dim_name)
         .ok_or_else(|| format!("Dimension '{}' not found", dim_name))?;
-    for (_, tile) in &mut dim.tiles {
+    for tile in dim.tiles.values_mut() {
         generate_all_layers(tile, world.seed);
     }
     Ok(())
+}
+
+impl Default for ScriptEngine {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ScriptEngine {

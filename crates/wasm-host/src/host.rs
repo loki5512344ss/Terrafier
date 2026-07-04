@@ -107,7 +107,7 @@ fn host_alloc_buffers(mut caller: Caller<'_, WorldContext>) -> i32 {
     };
     let needed_bytes = TOTAL_BUFFER;
     let current_size = mem.data_size(&caller);
-    let pages_needed = (needed_bytes + current_size + 65535) / 65536 - current_size / 65536;
+    let pages_needed = (needed_bytes + current_size).div_ceil(65536) - current_size / 65536;
     if mem.grow(&mut caller, pages_needed as u64).is_err() {
         return -1;
     }
