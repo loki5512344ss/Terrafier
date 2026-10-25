@@ -27,7 +27,7 @@ edition = "2024"
 version = "0.1.0"
 license = "GPL-3.0-or-later"
 authors = ["Loki"]
-repository = "https://github.com/loki5512344/Terrafier"
+repository = "https://github.com/loki5512344ss/Terrafier"
 description = "A high-performance Minecraft world painter, written in Rust"
 
 [workspace.dependencies]
