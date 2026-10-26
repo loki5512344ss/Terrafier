@@ -42,6 +42,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+    env:
+      # World generation tests exhaust the 1 MiB main-thread stack Windows
+      # gives a test binary; libtest threads inherit RUST_MIN_STACK.
+      RUST_MIN_STACK: "16777216"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
