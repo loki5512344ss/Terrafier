@@ -78,7 +78,7 @@ pub fn try_render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) -> bool
             painter.rect_stroke(
                 border_rect,
                 0.0,
-                egui::Stroke::new(3.0, Color32::WHITE),
+                egui::Stroke::new(3.0_f32, Color32::WHITE),
                 egui::StrokeKind::Middle,
             );
         }
@@ -100,7 +100,7 @@ pub fn try_render(ui: &mut egui::Ui, app: &mut crate::app::TerrafierApp) -> bool
             painter.circle_stroke(
                 egui::pos2(brush_x, brush_z),
                 brush_radius_px.max(2.0),
-                egui::Stroke::new(1.5, Color32::YELLOW),
+                egui::Stroke::new(1.5_f32, Color32::YELLOW),
             );
         }
 

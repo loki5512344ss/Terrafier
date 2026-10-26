@@ -1,0 +1,29 @@
+# cargo-audit configuration.
+#
+# CI runs `cargo audit --deny warnings`, so every ignore below is a decision,
+# not an accident. Remove an entry once the dependency tree no longer contains
+# the affected crate.
+
+[advisories]
+ignore = [
+    # quick-xml: транзитивно приходит из wasmtime/wit-tooling. Патч требует 0.41,
+    # обновится вместе с wasmtime.
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
+
+    # Unmaintained, но не уязвимые крейты. Замены либо нет, либо она означает
+    # смену формата/стека (bincode, paste, ttf-parser и т.п.).
+    "RUSTSEC-2025-0141", # bincode
+    "RUSTSEC-2025-0119", # number_prefix
+    "RUSTSEC-2024-0436", # paste
+    "RUSTSEC-2026-0192", # ttf-parser
+    "RUSTSEC-2026-0249", # smartstring (тянется tauri/wry)
+
+    # zbus-стек приходит из tauri (Linux backend). Замена — только вместе с tauri.
+    "RUSTSEC-2026-0370", # zvariant
+    "RUSTSEC-2026-0371", # zbus_names
+    "RUSTSEC-2026-0372", # zvariant_derive
+
+    # rand 0.7 используется старым tauri-стеком, обновится вместе с ним.
+    "RUSTSEC-2026-0097",
+]

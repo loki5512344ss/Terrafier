@@ -6,7 +6,7 @@ license.workspace = true
 description = "WASM plugin host for Terrafier using wasmtime"
 
 [dependencies]
-wasmtime = "46"
+wasmtime = "49"
 terrafier-core = { path = "../../core" }
 anyhow.workspace = true
 thiserror.workspace = true

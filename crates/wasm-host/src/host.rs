@@ -165,8 +165,9 @@ fn host_store_heightmap(mut caller: Caller<'_, WorldContext>) {
     let mut buf = vec![0u8; HEIGHTMAP_BYTES];
     let _ = mem.read(&caller, offset, &mut buf);
     let ctx = caller.data_mut();
-    for (i, chunk) in buf.chunks_exact(2).enumerate() {
-        ctx.tile.heightmap[i] = i16::from_le_bytes([chunk[0], chunk[1]]);
+    let (chunks, _) = buf.as_chunks::<2>();
+    for (i, chunk) in chunks.iter().enumerate() {
+        ctx.tile.heightmap[i] = i16::from_le_bytes(*chunk);
     }
 }
 

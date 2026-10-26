@@ -40,7 +40,7 @@ pub fn extract_world_data(val: &JvmValue) -> Result<WpWorldData> {
     }
 
     if tiles_data.is_empty() {
-        for (_key, val) in obj.iter() {
+        for val in obj.values() {
             collect_tiles(val, &mut tiles_data);
         }
     }
@@ -63,7 +63,7 @@ fn collect_tiles(val: &JvmValue, tiles: &mut Vec<WpTileData>) {
                 tiles.push(tile);
                 return;
             }
-            for (_key, sub) in map.iter() {
+            for sub in map.values() {
                 collect_tiles(sub, tiles);
             }
         }
